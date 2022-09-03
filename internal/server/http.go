@@ -19,6 +19,7 @@ func NewHTTPServer(addr string) *http.Server {
 	}
 }
 
+// httpServer wraps the Log data structure.
 type httpServer struct {
 	Log *Log
 }
