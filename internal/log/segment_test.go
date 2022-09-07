@@ -33,7 +33,7 @@ func TestSegment(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, seg.baseOffset+uint64(i), off)
 
-		returnedRecord, err := seg.Read(seg.baseOffset+uint64(i))
+		returnedRecord, err := seg.Read(seg.baseOffset + uint64(i))
 		require.NoError(t, err)
 		require.Equal(t, record.Value, returnedRecord.Value)
 	}
@@ -45,11 +45,11 @@ func TestSegment(t *testing.T) {
 
 	// check persistence
 	c.Segment.MaxIndexBytes = 1024
-	c.Segment.MaxStoreBytes = uint64((lenWidth + len(record.Value)) * 3) 
-	seg, err = newSegment(dir, 15, c)	// should load same segment as above given same parameters
+	c.Segment.MaxStoreBytes = uint64((lenWidth + len(record.Value)) * 3)
+	seg, err = newSegment(dir, 15, c) // should load same segment as above given same parameters
 	require.NoError(t, err)
-	require.True(t, seg.IsMaxed())	
-	
+	require.True(t, seg.IsMaxed())
+
 	// check Remove()
 	err = seg.Remove()
 	require.NoError(t, err)

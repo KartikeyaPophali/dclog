@@ -17,11 +17,11 @@ import (
 // Log encapsulates the slice of all segments and a pointer to the active segment.
 type Log struct {
 	mu sync.RWMutex
-	
-	Dir string
-	Config Config
+
+	Dir           string
+	Config        Config
 	activeSegment *segment
-	segments []*segment
+	segments      []*segment
 }
 
 // NewLog creates and sets up the Log datastructure.
@@ -33,7 +33,7 @@ func NewLog(dir string, c Config) (*Log, error) {
 		c.Segment.MaxIndexBytes = 1024
 	}
 	l := &Log{
-		Dir: dir,
+		Dir:    dir,
 		Config: c,
 	}
 	return l, l.setup()
@@ -52,14 +52,14 @@ func (l *Log) setup() error {
 		off, _ := strconv.ParseUint(offStr, 10, 0)
 		baseOffsets = append(baseOffsets, off)
 	}
-	sort.Slice(baseOffsets, func (i, j int) bool  {	// so that []segments is sorted old to new
+	sort.Slice(baseOffsets, func(i, j int) bool { // so that []segments is sorted old to new
 		return baseOffsets[i] < baseOffsets[j]
 	})
 	for i := 0; i < len(baseOffsets); i++ {
 		if err = l.newSegment(baseOffsets[i]); err != nil {
 			return err
 		}
-		i++	// baseOffsets has double entries corresponding to store and index files for each segment
+		i++ // baseOffsets has double entries corresponding to store and index files for each segment
 	}
 	if l.segments == nil {
 		if err = l.newSegment(l.Config.Segment.InitialOffset); err != nil {
@@ -74,13 +74,18 @@ func (l *Log) newSegment(baseOffset uint64) error {
 	seg, err := newSegment(l.Dir, baseOffset, l.Config)
 	if err != nil {
 		return err
-	} 
+	}
 	l.segments = append(l.segments, seg)
 	l.activeSegment = seg
 	return nil
 }
 
 // Append appends a record to the log and returns the offset.
+//
+// It checks whether the segment has reached its maximum size after the operation,
+// therefore it is possible for a segment to cross its MaxStoreBytes or MaxIndexBytes limit.
+// Example - if MaxStoreBytes=16 and one appends "hello world" as record value to a segment,
+// its store size would be 8+11=19 before a new segment is created
 func (l *Log) Append(record *api.Record) (offset uint64, err error) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -100,7 +105,7 @@ func (l *Log) Read(offset uint64) (*api.Record, error) {
 	l.mu.RLock()
 	defer l.mu.RUnlock()
 	var readSeg *segment
-	// TODO: use binary search instead of linear search to find read segment
+	// TODO: use binary search instead of linear search to find read segment - can use sort search()
 	for _, seg := range l.segments {
 		if seg.baseOffset <= offset && offset < seg.nextOffset {
 			readSeg = seg
@@ -154,17 +159,17 @@ func (l *Log) HighestOffset() (uint64, error) {
 	if off == 0 {
 		return off, nil
 	}
-	return off-1, nil
+	return off - 1, nil
 }
 
-// Truncate removes all segments whose highest offset is lower than the lowest.
+// Truncate removes all segments whose highest offset is lower than or equal to the lowest.
 // It will be called periodically to clear disc space by removing old segments.
 func (l *Log) Truncate(lowest uint64) error {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	var segments []*segment
 	for _, segment := range l.segments {
-		if segment.nextOffset <= lowest {
+		if segment.nextOffset <= lowest+1 {
 			if err := segment.Remove(); err != nil {
 				return err
 			}
