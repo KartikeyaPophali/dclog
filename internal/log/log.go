@@ -1,7 +1,6 @@
 package log
 
 import (
-	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -112,8 +111,8 @@ func (l *Log) Read(offset uint64) (*api.Record, error) {
 			break
 		}
 	}
-	if readSeg == nil {
-		return nil, fmt.Errorf("offset out of range: %d", offset)
+	if readSeg == nil {		// additional OR condition in reference code -- readSeg.nextOffset < offset -- is it required??
+		return nil, api.ErrorOffsetOutOfRange{Offset: offset}
 	}
 	return readSeg.Read(offset)
 }
