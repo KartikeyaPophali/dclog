@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/KartikeyaPophali/dclog/internal/server"
 	"log"
+
+	"github.com/kartpop/dclog/internal/server"
 )
 
 func main() {

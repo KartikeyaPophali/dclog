@@ -5,8 +5,8 @@ import (
 	"os"
 	"testing"
 
-	api "github.com/KartikeyaPophali/dclog/api/v1"
 	"github.com/golang/protobuf/proto"
+	api "github.com/kartpop/dclog/api/v1"
 	"github.com/stretchr/testify/require"
 )
 

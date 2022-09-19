@@ -10,7 +10,7 @@ import (
 	"strings"
 	"sync"
 
-	api "github.com/KartikeyaPophali/dclog/api/v1"
+	api "github.com/kartpop/dclog/api/v1"
 )
 
 // Log encapsulates the slice of all segments and a pointer to the active segment.
@@ -111,7 +111,7 @@ func (l *Log) Read(offset uint64) (*api.Record, error) {
 			break
 		}
 	}
-	if readSeg == nil {		// additional OR condition in reference code -- readSeg.nextOffset < offset -- is it required??
+	if readSeg == nil { // additional OR condition in reference code -- readSeg.nextOffset < offset -- is it required??
 		return nil, api.ErrorOffsetOutOfRange{Offset: offset}
 	}
 	return readSeg.Read(offset)

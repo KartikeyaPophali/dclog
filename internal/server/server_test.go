@@ -6,21 +6,21 @@ import (
 	"net"
 	"testing"
 
-	api "github.com/KartikeyaPophali/dclog/api/v1"
-	"github.com/KartikeyaPophali/dclog/internal/log"
+	api "github.com/kartpop/dclog/api/v1"
+	"github.com/kartpop/dclog/internal/log"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
 )
 
 func TestServer(t *testing.T) {
-	testFuncs := map[string]func(t *testing.T, client api.LogClient, config *Config) {
+	testFuncs := map[string]func(t *testing.T, client api.LogClient, config *Config){
 		"produce/consume to/from log succeeds": testProduceConsume,
-		"produce/consume stream succeeds": testProduceConsumeStream,
-		"consume past log boundary fails": testConsumePastBoundary,
+		"produce/consume stream succeeds":      testProduceConsumeStream,
+		"consume past log boundary fails":      testConsumePastBoundary,
 	}
 	for testCase, fn := range testFuncs {
 		t.Run(testCase, func(t *testing.T) {
-			client, config, teardown := setupTest(t, nil)	// TODO: why have 2nd param if nil is always passed
+			client, config, teardown := setupTest(t, nil) // TODO: why have 2nd param if nil is always passed
 			defer teardown()
 			fn(t, client, config)
 		})
@@ -36,7 +36,7 @@ func testProduceConsume(t *testing.T, client api.LogClient, config *Config) {
 	proreq := &api.ProduceRequest{
 		Record: record,
 	}
-	prores, err:= client.Produce(ctx, proreq)
+	prores, err := client.Produce(ctx, proreq)
 	require.NoError(t, err)
 
 	// test Consume
@@ -110,7 +110,7 @@ func testProduceConsumeStream(t *testing.T, client api.LogClient, config *Config
 
 func setupTest(t *testing.T, fn func(*Config)) (client api.LogClient, config *Config, teardown func()) {
 	t.Helper()
-	
+
 	// setup client
 	listener, err := net.Listen("tcp", ":0")
 	require.NoError(t, err)
@@ -127,7 +127,7 @@ func setupTest(t *testing.T, fn func(*Config)) (client api.LogClient, config *Co
 	config = &Config{
 		CommitLog: clog,
 	}
-	if fn != nil {	// fn is always nil, seems unnecessary
+	if fn != nil { // fn is always nil, seems unnecessary
 		fn(config)
 	}
 	server, err := NewGRPCServer(config)
