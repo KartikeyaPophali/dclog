@@ -118,12 +118,13 @@ func setupTest(t *testing.T, fn func(*Config)) (client api.LogClient, cfg *Confi
 	require.NoError(t, err)
 
 	clientTLSConfig, err := config.SetupTLSConfig(config.TLSConfig{
-		CAFile: config.CAFile,		// configure client's TLS credentials to use our CA as client's Root CA
+		CertFile: config.ClientCertFile,
+		KeyFile:  config.ClientKeyFile,
+		CAFile:   config.CAFile, // configure client's TLS credentials to use our CA as client's Root CA
 	})
 	require.NoError(t, err)
 
 	clientCreds := credentials.NewTLS(clientTLSConfig)
-	//clientOptions := []grpc.DialOption{grpc.WithInsecure()}
 	clientConn, err := grpc.Dial(listener.Addr().String(), grpc.WithTransportCredentials(clientCreds))
 	require.NoError(t, err)
 
@@ -131,11 +132,12 @@ func setupTest(t *testing.T, fn func(*Config)) (client api.LogClient, cfg *Confi
 
 	// setup server
 	serverTLSConfig, err := config.SetupTLSConfig(config.TLSConfig{
-		CertFile: config.ServerCertFile,
-		KeyFile: config.ServerKeyFile,
-		CAFile: config.CAFile,
+		CertFile:      config.ServerCertFile,
+		KeyFile:       config.ServerKeyFile,
+		CAFile:        config.CAFile,
 		ServerAddress: listener.Addr().String(),
-	})		// hook up server with its certificate
+		Server:        true,
+	})
 	require.NoError(t, err)
 
 	serverCreds := credentials.NewTLS(serverTLSConfig)
@@ -144,7 +146,7 @@ func setupTest(t *testing.T, fn func(*Config)) (client api.LogClient, cfg *Confi
 
 	clog, err := log.NewLog(dir, log.Config{})
 	require.NoError(t, err)
-	
+
 	cfg = &Config{
 		CommitLog: clog,
 	}
