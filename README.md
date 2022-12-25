@@ -1,1 +1,1 @@
-A distributed commit log
+A commit log
