@@ -1,1 +1,1 @@
-A commit log
+A commit log.
